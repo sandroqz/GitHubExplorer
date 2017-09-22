@@ -7,6 +7,7 @@ const USER_REPOSITORIES_QUERY = gql`
     user(login: $login) {
       repositories(first: 10, orderBy: { field: CREATED_AT, direction: DESC }) {
         nodes {
+          id
           name
           url
           createdAt
@@ -31,6 +32,7 @@ class Main extends Component {
         <FlatList
           data={this.props.userRepositoriesQuery.user.repositories.nodes}
           renderItem={({ item }) => <Text style={styles.item}>{item.name}</Text>}
+          keyExtractor={item => item.id}
         />
       </View>
     )
