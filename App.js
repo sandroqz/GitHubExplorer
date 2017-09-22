@@ -1,23 +1,32 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { Component } from 'react'
+import { ApolloProvider, createNetworkInterface, ApolloClient } from 'react-apollo'
 
-export default class App extends React.Component {
+import Main from './src/components/Main'
+
+import { GH_API_ENDPOINT, GH_AUTH_TOKEN } from './src/constants'
+
+const networkInterface = createNetworkInterface({ uri: GH_API_ENDPOINT })
+
+networkInterface.use([
+  {
+    applyMiddleware(req, next) {
+      if (!req.options.headers) {
+        req.options.headers = {}
+      }
+      req.options.headers.authorization = `Bearer ${GH_AUTH_TOKEN}`
+      next()
+    }
+  }
+])
+
+const client = new ApolloClient({ networkInterface })
+
+export default class App extends Component {
   render() {
     return (
-      <View style={styles.container}>
-        <Text>Open up App.js to start working on your app!</Text>
-        <Text>Changes you make will automatically reload.</Text>
-        <Text>Shake your phone to open the developer menu.</Text>
-      </View>
-    );
+      <ApolloProvider client={client}>
+        <Main />
+      </ApolloProvider>
+    )
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
