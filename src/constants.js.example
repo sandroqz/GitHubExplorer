@@ -1,0 +1,2 @@
+export const GH_API_ENDPOINT = 'https://api.github.com/graphql'
+export const GH_AUTH_TOKEN = '__GitHub_AUTH_TOKEN__'
