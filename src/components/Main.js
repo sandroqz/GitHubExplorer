@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { View, ListView, StyleSheet, Text } from 'react-native'
+import { View, StyleSheet, Text, FlatList } from 'react-native'
 import { graphql, gql } from 'react-apollo'
 
 const USER_REPOSITORIES_QUERY = gql`
@@ -17,25 +17,6 @@ const USER_REPOSITORIES_QUERY = gql`
 `
 
 class Main extends Component {
-  constructor(props) {
-    super(props)
-    const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 })
-    this.state = {
-      dataSource: ds.cloneWithRows([]),
-      modalVisible: false,
-      user: undefined
-    }
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if (!nextProps.userRepositoriesQuery.loading && !nextProps.userRepositoriesQuery.error) {
-      const { dataSource } = this.state
-      this.setState({
-        dataSource: dataSource.cloneWithRows(nextProps.userRepositoriesQuery.user.repositories.nodes)
-      })
-    }
-  }
-
   render() {
     if (this.props.userRepositoriesQuery.loading) {
       return (
@@ -47,10 +28,9 @@ class Main extends Component {
 
     return (
       <View style={styles.container}>
-        <ListView
-          enableEmptySections={true}
-          dataSource={this.state.dataSource}
-          renderRow={repository => <Text>{repository.name}</Text>}
+        <FlatList
+          data={this.props.userRepositoriesQuery.user.repositories.nodes}
+          renderItem={({ item }) => <Text style={styles.item}>{item.name}</Text>}
         />
       </View>
     )
@@ -61,6 +41,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 30
+  },
+  item: {
+    padding: 10,
+    fontSize: 18,
+    height: 44
   }
 })
 
