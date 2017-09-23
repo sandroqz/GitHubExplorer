@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "expo": "^20.0.0",
+    "moment": "^2.18.1",
     "react": "16.0.0-alpha.12",
     "react-apollo": "^1.4.15",
     "react-native": "^0.47.0",

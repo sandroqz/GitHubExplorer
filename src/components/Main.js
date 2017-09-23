@@ -1,21 +1,8 @@
 import React, { Component } from 'react'
 import { View, StyleSheet, Text, FlatList } from 'react-native'
 import { graphql, gql } from 'react-apollo'
-
-const USER_REPOSITORIES_QUERY = gql`
-  query UserRepositoriesQuery($login: String!) {
-    user(login: $login) {
-      repositories(first: 10, orderBy: { field: CREATED_AT, direction: DESC }) {
-        nodes {
-          id
-          name
-          url
-          createdAt
-        }
-      }
-    }
-  }
-`
+import { List, ListItem } from 'react-native-elements'
+import moment from 'moment'
 
 class Main extends Component {
   render() {
@@ -28,13 +15,27 @@ class Main extends Component {
     }
 
     return (
-      <View style={styles.container}>
+      <List containerStyle={{ borderTopWidth: 0, borderBottomWidth: 0 }}>
         <FlatList
           data={this.props.userRepositoriesQuery.user.repositories.nodes}
-          renderItem={({ item }) => <Text style={styles.item}>{item.name}</Text>}
           keyExtractor={item => item.id}
+          renderItem={({ item }) => (
+            <ListItem
+              hideChevron
+              title={`${item.name}`}
+              subtitle={`Created at ${moment(new Date(item.createdAt)).format('DD/MM/YYYY')}`}
+              badge={{
+                value: `${item.primaryLanguage ? item.primaryLanguage.name : 'Unknown'}`,
+                containerStyle: {
+                  right: 10,
+                  backgroundColor: `${item.primaryLanguage ? item.primaryLanguage.color : '#696969'}`
+                },
+                textStyle: { fontSize: 12 }
+              }}
+            />
+          )}
         />
-      </View>
+      </List>
     )
   }
 }
@@ -50,6 +51,24 @@ const styles = StyleSheet.create({
     height: 44
   }
 })
+
+const USER_REPOSITORIES_QUERY = gql`
+  query UserRepositoriesQuery($login: String!) {
+    user(login: $login) {
+      repositories(first: 10, orderBy: { field: CREATED_AT, direction: DESC }) {
+        nodes {
+          id
+          name
+          createdAt
+          primaryLanguage {
+            name
+            color
+          }
+        }
+      }
+    }
+  }
+`
 
 export default graphql(USER_REPOSITORIES_QUERY, {
   name: 'userRepositoriesQuery',
