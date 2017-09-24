@@ -1,8 +1,6 @@
 import React, { Component } from 'react'
 import { ApolloProvider, createNetworkInterface, ApolloClient } from 'react-apollo'
-
 import Main from './src/components/Main'
-
 import { GH_API_ENDPOINT, GH_AUTH_TOKEN } from './src/constants'
 
 const networkInterface = createNetworkInterface({ uri: GH_API_ENDPOINT })

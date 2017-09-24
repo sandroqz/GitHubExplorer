@@ -1,60 +1,72 @@
 import React, { Component } from 'react'
-import { View, StyleSheet, Text, FlatList } from 'react-native'
-import { graphql, gql } from 'react-apollo'
-import { List, ListItem } from 'react-native-elements'
-import moment from 'moment'
+import { View, StyleSheet, Text, ActivityIndicator } from 'react-native'
+import { gql, withApollo } from 'react-apollo'
+import { SearchBar, Button } from 'react-native-elements'
+import RepositoryList from './RepositoryList'
 
 class Main extends Component {
+  state = {
+    user: null,
+    login: ''
+  }
+
+  _onChangeText = e => {
+    this.setState({ login: e })
+  }
+
   render() {
-    if (this.props.userRepositoriesQuery.loading) {
-      return (
-        <View style={styles.container}>
-          <Text>Loading...</Text>
-        </View>
-      )
-    }
+    // if (this.props.userRepositoriesQuery.loading) {
+    //   return <ActivityIndicator style={styles.loading} />
+    // }
 
     return (
-      <List containerStyle={{ borderTopWidth: 0, borderBottomWidth: 0 }}>
-        <FlatList
-          data={this.props.userRepositoriesQuery.user.repositories.nodes}
-          keyExtractor={item => item.id}
-          renderItem={({ item }) => (
-            <ListItem
-              hideChevron
-              title={`${item.name}`}
-              subtitle={`Created at ${moment(new Date(item.createdAt)).format('DD/MM/YYYY')}`}
-              badge={{
-                value: `${item.primaryLanguage ? item.primaryLanguage.name : 'Unknown'}`,
-                containerStyle: {
-                  right: 10,
-                  backgroundColor: `${item.primaryLanguage ? item.primaryLanguage.color : '#696969'}`
-                },
-                textStyle: { fontSize: 12 }
-              }}
-            />
-          )}
-        />
-      </List>
+      <View style={styles.mainContainer}>
+        <View style={styles.headerContainer}>
+          <Text style={styles.headerTitle}>GitHub Explorer</Text>
+        </View>
+        <View style={styles.searchContainer}>
+          <SearchBar
+            round
+            clearIcon
+            lightTheme
+            autoCapitalize="none"
+            placeholder="Type username here..."
+            onChangeText={this._onChangeText}
+          />
+          <Button
+            title="Go!"
+            borderRadius={50}
+            backgroundColor="#178f5f"
+            onPress={() => this._executeSearch()}
+          />
+        </View>
+        {this.state.user ? (
+          <RepositoryList user={this.state.user} />
+        ) : (
+          <View>
+            <Text>User not found!</Text>
+          </View>
+        )}
+      </View>
     )
   }
-}
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 30
-  },
-  item: {
-    padding: 10,
-    fontSize: 18,
-    height: 44
+  _executeSearch = async () => {
+    const { login } = this.state
+    const result = await this.props.client.query({
+      query: USER_REPOSITORIES_QUERY,
+      variables: { login }
+    })
+    const user = result.data.user
+    this.setState({ user })
   }
-})
+}
 
 const USER_REPOSITORIES_QUERY = gql`
   query UserRepositoriesQuery($login: String!) {
     user(login: $login) {
+      name
+      avatarUrl
       repositories(first: 10, orderBy: { field: CREATED_AT, direction: DESC }) {
         nodes {
           id
@@ -70,11 +82,31 @@ const USER_REPOSITORIES_QUERY = gql`
   }
 `
 
-export default graphql(USER_REPOSITORIES_QUERY, {
-  name: 'userRepositoriesQuery',
-  options: {
-    variables: {
-      login: 'sandroqz'
-    }
+const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    backgroundColor: '#dfe8ee'
+  },
+  headerContainer: {
+    paddingTop: 20,
+    paddingBottom: 10,
+    backgroundColor: '#1570c6'
+  },
+  headerTitle: {
+    fontSize: 18,
+    textAlign: 'center',
+    color: '#fff'
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 5,
+    paddingBottom: 5
+  },
+  loading: {
+    margin: 50
   }
-})(Main)
+})
+
+export default withApollo(Main)
